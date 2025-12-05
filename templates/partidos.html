@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block title %}Resultados de Partidos{% endblock %}
+
+{% block content %}
+    <style>
+        .partidos-table {
+            margin: 0 auto;
+            width: 90%;
+            max-width: 900px;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(25,50,80,0.06);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        .partidos-table th, .partidos-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e6eb;
+            text-align: center;
+        }
+        .partidos-table thead {
+            background: var(--color-primary);
+            color: #fff;
+        }
+        .partidos-table tbody tr:hover {
+            background: #f1f5fa;
+            transition: background 0.2s;
+        }
+        .resultado-ganado {
+            font-weight: bold;
+            color: var(--color-green);
+        }
+        .resultado-perdido {
+            font-weight: bold;
+            color: red;
+        }
+        .resultado-empatado {
+            font-weight: bold;
+            color: orange;
+        }
+    </style>
+
+    <div class="page-header">
+        <h1>Partidos de Sigamotoa FC</h1>
+        <a href="#modal-partido" class="btn-add">➕ Añadir Partido</a>
+    </div>
+
+    <table class="partidos-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Rival</th>
+                <th>Goles Sigmotoa</th>
+                <th>Goles Rival</th>
+                <th>Resultado</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for partido in partidos %}
+            <tr>
+                <td>{{ partido.id }}</td>
+                <td>{{ partido.fecha_partido.strftime('%Y-%m-%d') }}</td>
+                <td style="text-align: left; font-weight: bold;">vs. {{ partido.rival }}</td>
+                <td>{{ partido.goles_sigmotoa }}</td>
+                <td>{{ partido.goles_rival }}</td>
+                <td class="resultado-{{ partido.resultado_simple.lower() }}">
+                    {{ partido.resultado_simple }}
+                </td>
+                <td>{{ partido.estado }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="modal-partido" class="modal">
+        <div class="modal-content">
+            <a href="/partidos" class="close-btn" title="Cerrar">&times;</a>
+            <h2>Registro de Partido</h2>
+            <form action="/partidos" method="post">
+                <div class="grid-form">
+                    <label class="full-width">Rival: <input type="text" name="rival" required></label>
+                    <label>Fecha del Partido: <input type="date" name="fecha_partido" required></label>
+                    <label>Estado:
+                        <select name="estado" required>
+                            <option value="PROGRAMADO">PROGRAMADO</option>
+                            <option value="FINALIZADO">FINALIZADO</option>
+                        </select>
+                    </label>
+                    <label>Goles de Sigamotoa: <input type="number" name="goles_sigamotoa" min="0" value="0" required></label>
+                    <label>Goles del Rival: <input type="number" name="goles_rival" min="0" value="0" required></label>
+                </div>
+                <button type="submit">Registrar Partido</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

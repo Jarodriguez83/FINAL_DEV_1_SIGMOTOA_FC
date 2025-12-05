@@ -1,22 +1,10 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ title }}</title>
+{% extends "layout.html" %}
+
+{% block title %}Plantilla de Jugadores{% endblock %}
+
+{% block content %}
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f3f5f9;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            text-align: center;
-            color: #23457b;
-            margin-top: 40px;
-            margin-bottom: 30px;
-            letter-spacing: 1px;
-        }
+        /* Estilos que enviaste (se mantienen para la tabla) */
         .jugadores-table {
             margin: 0 auto;
             width: 90%;
@@ -33,7 +21,7 @@
             text-align: center;
         }
         .jugadores-table thead {
-            background: #23457b;
+            background: var(--color-primary); /* Se usa la variable */
             color: #fff;
         }
         .jugadores-table tbody tr:hover {
@@ -47,30 +35,42 @@
             object-fit: cover;
             background: #f5f5f5;
         }
-        @media (max-width: 900px) {
-            .jugadores-table {font-size: 12px;}
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 20px auto 10px;
+            padding: 0 5%;
         }
-        @media (max-width: 600px) {
-            .jugadores-table, .jugadores-table th, .jugadores-table td {font-size: 9px;}
-            h1 {font-size: 1.3rem;}
+        .btn-add {
+            background-color: var(--color-green);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-add:hover {
+            background-color: #1e9949;
         }
     </style>
-</head>
-<body>
-    <h1>{{ title }}</h1>
+
+    <div class="page-header">
+        <h1>Plantilla de Jugadores</h1>
+        <a href="#modal-jugador" class="btn-add">➕ Añadir Jugador</a>
+    </div>
+
     <table class="jugadores-table">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Nombre</th>
+                <th>Foto</th>
                 <th>Número</th>
-                <th>Fecha Nacimiento</th>
-                <th>Nacionalidad</th>
-                <th>Fotografía</th>
-                <th>Altura (cm)</th>
-                <th>Peso (kg)</th>
-                <th>Pie Dominante</th>
+                <th>Nombre</th>
                 <th>Posición</th>
+                <th>Pie Dominante</th>
+                <th>Altura/Peso</th>
                 <th>Año Ingreso</th>
                 <th>Valor Mercado</th>
                 <th>Estado</th>
@@ -80,10 +80,6 @@
         {% for jugador in jugadores %}
             <tr>
                 <td>{{ jugador.id }}</td>
-                <td>{{ jugador.nombre }}</td>
-                <td>{{ jugador.numero_camiseta }}</td>
-                <td>{{ jugador.fecha_nacimiento.strftime('%Y-%m-%d') }}</td>
-                <td>{{ jugador.nacionalidad }}</td>
                 <td>
                   {% if jugador.fotografia_url %}
                     <img class="foto-jugador" src="{{ jugador.fotografia_url }}" alt="Foto de {{ jugador.nombre }}">
@@ -91,22 +87,65 @@
                     <span style="color: #888;">Sin foto</span>
                   {% endif %}
                 </td>
-                <td>{{ jugador.altura_cm if jugador.altura_cm else "&nbsp;" }}</td>
-                <td>{{ jugador.peso_kg if jugador.peso_kg else "&nbsp;" }}</td>
-                <td>{{ jugador.pie_dominante if jugador.pie_dominante else "&nbsp;" }}</td>
-                <td>{{ jugador.posicion if jugador.posicion else "&nbsp;" }}</td>
-                <td>{{ jugador.ano_ingreso_club if jugador.ano_ingreso_club else "&nbsp;" }}</td>
+                <td>{{ jugador.numero_camiseta }}</td>
+                <td style="text-align: left; font-weight: bold;">{{ jugador.nombre }}</td>
+                <td>{{ jugador.posicion.value }}</td>
+                <td>{{ jugador.pie_dominante.value }}</td>
+                <td>{{ jugador.altura_cm }}cm / {{ jugador.peso_kg }}kg</td>
+                <td>{{ jugador.ano_ingreso_club }}</td>
                 <td>
                   {% if jugador.valor_mercado_col %}
-                    ${{ "{:,.2f}".format(jugador.valor_mercado_col) }}
+                    ${{ "{:,.0f}".format(jugador.valor_mercado_col) }}
                   {% else %}
                     &nbsp;
                   {% endif %}
                 </td>
-                <td>{{ jugador.estado_jugador if jugador.estado_jugador else "&nbsp;" }}</td>
+                <td style="font-weight: bold; color: {% if jugador.estado_jugador == 'ACTIVO' %}green{% elif jugador.estado_jugador == 'LESIONADO' %}red{% else %}orange{% endif %};">{{ jugador.estado_jugador.value }}</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+
+    <div id="modal-jugador" class="modal">
+        <div class="modal-content">
+            <a href="/jugadores" class="close-btn" title="Cerrar">&times;</a>
+            <h2>Registro de Nuevo Jugador</h2>
+            <form action="/jugadores" method="post">
+                <div class="grid-form">
+                    <label class="full-width">Nombre Completo: <input type="text" name="nombre" required></label>
+                    <label>Número Camiseta: <input type="number" name="numero_camiseta" min="1" required></label>
+                    <label>Fecha Nacimiento: <input type="date" name="fecha_nacimiento" required></label>
+                    <label>Posición:
+                        <select name="posicion" required>
+                            {% for pos in posiciones %}
+                                <option value="{{ pos }}">{{ pos }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Pie Dominante:
+                        <select name="pie_dominante" required>
+                            {% for pie in pies_dominantes %}
+                                <option value="{{ pie }}">{{ pie }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Altura (cm): <input type="number" name="altura_cm" min="100" required></label>
+                    <label>Peso (kg): <input type="number" name="peso_kg" min="30" required></label>
+                    <label>Nacionalidad: <input type="text" name="nacionalidad" required></label>
+                    <label>Año Ingreso: <input type="number" name="ano_ingreso_club" min="1900" max="{{ now().year }}" required></label>
+                    <label>Valor Mercado (COP): <input type="number" name="valor_mercado_col" min="0" required></label>
+                    <label>Estado:
+                        <select name="estado_jugador" required>
+                            {% for estado in estados %}
+                                <option value="{{ estado }}">{{ estado }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="full-width">URL Fotografía (Opcional): <input type="text" name="fotografia_url"></label>
+                </div>
+                <button type="submit">Registrar Jugador</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+

@@ -1,83 +1,163 @@
-#LIBERÍAS DE FASTAPI
-from fastapi import FastAPI, Form, UploadFile, File, Depends, HTTPException #FASTAPI PRINCIPAL
-from fastapi.responses import HTMLResponse #RESPUESTAS HTML
-#LIBRERÍAS DE BASE DE DATOS USO DE SUPABASE
-from datetime import datetime
-import shutil #MANEJO DE ARCHIVOS
-from fastapi.params import Query
-from httpx import request #PETICIONES HTTP
-from sqlalchemy import or_ #OPERADORES LÓGICOS
-from supabase import create_client, Client #CLIENTE DE SUPABASE
-from starlette.requests import Request #PETICIONES HTTP
-#LIBRERÍAS PARA EL USO DE TEMPLATES CON FASTAPI
-from fastapi.templating import Jinja2Templates #TEMPLATES JINJA2
-from fastapi.staticfiles import StaticFiles #ARCHIVOS ESTÁTICOS
-#LIBERÍAS DE BASE DE DATOS USO DE SQLMODEL
+# main.py
+
+# LIBERÍAS DE FASTAPI
+from fastapi import FastAPI, Form, Depends, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
+from starlette.requests import Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
+# LIBRERÍAS DE BASE DE DATOS Y MANEJO
+from datetime import datetime, date  # Importaciones cruciales
+from sqlmodel import Session, select
+from typing import Optional  # <<< SOLUCIÓN AL NameError: 'Optional' is not defined
+
+# IMPORTACIÓN DE MODELOS Y MÓDULOS PROPIOS
+from models import Jugador, Partido, PosicionEnum, PieDominanteEnum, EstadoJugadorEnum
 from database import engine, get_session, create_db_and_tables
-from sqlmodel import SQLModel, Session, select
-from typing import List, Optional, Generator
 
-#IMPORTACIÓN DE MODELOS Y MÓDULOS PROPIOS 
-from models import (
-    Jugador,
-    JugadorCreate,
-    JugadorRead,
-    Estadistica,
-    Partido,
-    EstadisticaRead,
-    EstadisticaReadWithPlayer,
-    EstadisticaCreate,
-    PartidoRead,
-    PartidoCreate,
-    PartidoReadWithPlayers,
-    PartidoCreateWithPlayers,
-    JugadorUpdate
-)
-#INICIALIZACIÓN DE LA APLICACIÓN FASTAPI
-app = FastAPI(title="SIGMOTOA FÚTBOL CLUB", version="0.1.0", description="SISTEMA WEB PARA LA GESTIÓN DE DATOS DEL CLUB DE FÚTBOL SIGMOTOA FC")
-#MONTAR LA CARPETA DE ARCHIVOS ESTÁTICOS
+# INICIALIZACIÓN DE LA APLICACIÓN FASTAPI
+app = FastAPI(title="SIGMOTOA FÚTBOL CLUB", version="0.1.0",
+              description="SISTEMA WEB PARA LA GESTIÓN DE DATOS DEL CLUB DE FÚTBOL SIGMOTOA FC")
+
+# CONFIGURACIÓN DE LOS TEMPLATES Y ARCHIVOS ESTÁTICOS
 app.mount("/static", StaticFiles(directory="static"), name="static")
-#CONFIGURACIÓN DE LOS TEMPLATES JINJA2
 templates = Jinja2Templates(directory="templates")
-#CONFIGURACIÓN DE SUPABASE
-SUPABASE_URL: str = "https://okuotijfayaoecerimfi.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdW90aWpmYXlhb2VjZXJpbWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTg1OTMsImV4cCI6MjA4MDM3NDU5M30.8SstgKcCZs3CbcZSd0KEH4FQ7VBEnLR3t5RJeBzvsxk"
-SUPABASE_BUCKET_NAME = "IMG"
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY) #CREACIÓN DEL CLIENTE DE SUPABASE
 
-#EJECUCIÓN DE LA CREACIÓN DE LA BASE DE DATOS Y TABLAS AL INICIAR EL SISTEMA WEB
+# --- AJUSTE CRUCIAL DE TEMPLATE: Hacer datetime.now() disponible globalmente en Jinja2 ---
+# Esto asegura que {{ now().year }} funcione en el footer del layout.html
+templates.env.globals['now'] = datetime.now
+
+
+# --- EVENTO DE INICIO ---
 @app.on_event("startup")
 def on_startup():
+    """Ejecuta la creación de tablas al iniciar el servidor."""
     create_db_and_tables()
 
-# RUTA BÁSICA: INICIO
-@app.get("/", tags=["FRONTEND"])
-def homepage(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "title": "SIGMOTOA FC - SISTEMA WEB DE GESTIÓN DE DATOS"})
 
-# RUTA HTML: LISTADO DE JUGADORES
-@app.get("/jugadores", response_class=HTMLResponse, tags=["FRONTEND"])
-def listar_jugadores(request: Request, session: Session = Depends(get_session)):
-    jugadores = session.exec(select(Jugador)).all()
-    return templates.TemplateResponse(
-        "jugadores.html",
-        {
-            "request": request,
-            "jugadores": jugadores,
-            "title": "Listado de Jugadores"
-        }
-    )
+# --- ENDPOINTS PRINCIPALES ---
+
+@app.get("/", response_class=HTMLResponse)
+def read_index(request: Request):
+    """Página de inicio"""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
+# --- ENDPOINTS JUGADORES ---
 
-@app.get("/jugadores", response_class=HTMLResponse, tags=["FRONTEND"])
-def listar_jugadores(request: Request, session: Session = Depends(get_session)):
-    jugadores = session.exec(select(Jugador)).all()
-    return templates.TemplateResponse(
-        "jugadores.html",
-        {
-            "request": request,
-            "jugadores": jugadores,
-            "title": "Listado de Jugadores"
-        }
-    )
+@app.get("/jugadores", response_class=HTMLResponse)
+def read_jugadores(request: Request, session: Session = Depends(get_session)):
+    """Muestra la lista de jugadores y el formulario."""
+    try:
+        jugadores = session.exec(select(Jugador)).all()
+    except Exception as e:
+        # Esto captura errores de DB si no se han creado las tablas correctamente
+        print(f"Error al cargar jugadores: {e}")
+        jugadores = []
+
+    context = {
+        "request": request,
+        "jugadores": jugadores,
+        # Se envían los valores de los Enums
+        "posiciones": [p.value for p in PosicionEnum],
+        "pies_dominantes": [p.value for p in PieDominanteEnum],
+        "estados": [e.value for e in EstadoJugadorEnum],
+    }
+    return templates.TemplateResponse("jugadores.html", context)
+
+
+@app.post("/jugadores")
+def create_jugador(
+        nombre: str = Form(...),
+        numero_camiseta: int = Form(...),
+        fecha_nacimiento: str = Form(...),
+        nacionalidad: str = Form(...),
+        fotografia_url: Optional[str] = Form(None),  # Solución con Optional importado
+        altura_cm: int = Form(...),
+        peso_kg: int = Form(...),
+
+        pie_dominante_str: str = Form(..., alias="pie_dominante"),
+        posicion_str: str = Form(..., alias="posicion"),
+
+        ano_ingreso_club: int = Form(...),
+        valor_mercado_col: int = Form(...),
+
+        estado_jugador_str: str = Form(..., alias="estado_jugador"),
+
+        session: Session = Depends(get_session)
+):
+    """Crea un nuevo jugador en la DB."""
+    try:
+        new_player = Jugador(
+            nombre=nombre,
+            numero_camiseta=numero_camiseta,
+            # Conversión explícita a date
+            fecha_nacimiento=datetime.strptime(fecha_nacimiento, "%Y-%m-%d").date(),
+            nacionalidad=nacionalidad,
+            fotografia_url=fotografia_url,
+            altura_cm=altura_cm,
+            peso_kg=peso_kg,
+            # Conversión explícita a Enum
+            pie_dominante=PieDominanteEnum(pie_dominante_str),
+            posicion=PosicionEnum(posicion_str),
+
+            ano_ingreso_club=ano_ingreso_club,
+            valor_mercado_col=valor_mercado_col,
+
+            estado_jugador=EstadoJugadorEnum(estado_jugador_str)
+        )
+        session.add(new_player)
+        session.commit()
+        session.refresh(new_player)
+        return RedirectResponse("/jugadores", status_code=303)
+    except ValueError as e:
+        # Error si el string no es un Enum válido o hay error de formato de fecha
+        raise HTTPException(status_code=400,
+                            detail=f"Error en el valor proporcionado: {e}. Verifique que las selecciones sean correctas y el formato de fecha sea YYYY-MM-DD.")
+    except Exception as e:
+        # Error general, ej. número de camiseta duplicado, restricción violada
+        raise HTTPException(status_code=400,
+                            detail=f"Error al crear el jugador (Posible duplicado o valor fuera de rango): {e}")
+
+
+# --- ENDPOINTS PARTIDOS ---
+
+@app.get("/partidos", response_class=HTMLResponse)
+def read_partidos(request: Request, session: Session = Depends(get_session)):
+    """Muestra la lista de partidos."""
+    try:
+        partidos = session.exec(select(Partido)).all()
+    except Exception as e:
+        print(f"Error al cargar partidos: {e}")
+        partidos = []
+
+    context = {"request": request, "partidos": partidos}
+    return templates.TemplateResponse("partidos.html", context)
+
+
+@app.post("/partidos")
+def create_partido(
+        fecha_partido: str = Form(...),
+        rival: str = Form(...),
+        goles_sigmotoa: int = Form(...),
+        goles_rival: int = Form(...),
+        estado_str: str = Form(..., alias="estado"),
+        session: Session = Depends(get_session)
+):
+    """Crea un nuevo partido, calcula el resultado implícito."""
+    try:
+        new_partido = Partido(
+            fecha_partido=datetime.strptime(fecha_partido, "%Y-%m-%d").date(),
+            rival=rival,
+            goles_sigmotoa=goles_sigmotoa,
+            goles_rival=goles_rival,
+            estado=estado_str
+        )
+
+        session.add(new_partido)
+        session.commit()
+        session.refresh(new_partido)
+        return RedirectResponse("/partidos", status_code=303)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error al crear el partido: {e}")

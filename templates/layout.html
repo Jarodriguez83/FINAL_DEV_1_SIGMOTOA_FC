@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sigamotoa FC | {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Estilos para el Modal */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal:target {
+            display: block; /* Muestra el modal cuando el hash coincide */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+        form input[type="text"],
+        form input[type="number"],
+        form input[type="date"],
+        form select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        form button[type="submit"] {
+            background-color: var(--color-secondary);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        form button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .grid-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .full-width {
+            grid-column: 1 / 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <nav class="top-nav">
+            <a href="/" class="logo-text">SIGMOTOA FC</a>
+            <ul class="nav-links">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/jugadores">Plantilla</a></li>
+                <li><a href="/partidos">Partidos</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <main class="content-wrapper" style="padding-top: 60px;">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col footer-branding">
+                <a href="/" class="logo-text" style="color: var(--color-primary);">SIGMOTOA FC</a>
+                <p class="project-subtitle">Sistema de Gestión Web</p>
+                </div>
+            <div class="footer-col">
+                <h3>Plantilla</h3>
+                <ul>
+                    <li><a href="/jugadores">Listado de Jugadores</a></li>
+                    <li><a href="#">Estadísticas Individuales</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Competición</h3>
+                <ul>
+                    <li><a href="/partidos">Resultados</a></li>
+                    <li><a href="#">Próximos Partidos</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Contacto</h3>
+                <ul>
+                    <li>Teléfono: +57 123 4567</li>
+                    <li>Email: info@sigmotoafc.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; {{ now().year }} Sigamotoa F.C. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <script>
+        // Función para cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            var modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    window.location.hash = ''; // Borra el hash para ocultar el modal
+                }
+            });
+        }
+    </script>
+</body>
+</html>

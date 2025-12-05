@@ -95,7 +95,7 @@ El modelo `Partido` agrupa las estadísticas de los jugadores en cada partido:
 4.Ejecuta el servidor 
 uvicorn main:app --reload
 
-**Autores**
+## **Autores**
 
 _**Este proyecto fue desarrollado por:**_
 

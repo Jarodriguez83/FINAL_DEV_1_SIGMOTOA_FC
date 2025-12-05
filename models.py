@@ -46,7 +46,7 @@ class Partido(SQLModel, table=True):
     #AGRUPACIÓN DE LAS ESTADISTICAS DE LOS JUGADORES EN CADA PARTIDO
     id: Optional[int] = Field(default=None, primary_key=True)
     fecha_partido: datetime
-    jugadores: List[JugadorBase] = Relationship(back_populates="partidos")
+    jugadores: List[Jugador] = Relationship(back_populates="partidos")
     resultado: Optional[str] = None
     #SIGMOTOA SIEMPRE ES LOCAL
     goles_sigmotoa: Optional[int] = None

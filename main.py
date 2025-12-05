@@ -23,60 +23,16 @@ from models import (
     JugadorCreate,
     JugadorRead,
     Estadistica,
-    Partido 
+    Partido,
+    EstadisticaRead,
+    EstadisticaReadWithPlayer,
+    EstadisticaCreate,
+    PartidoRead,
+    PartidoCreate,
+    PartidoReadWithPlayers,
+    PartidoCreateWithPlayers,
+    JugadorUpdate
 )
-#ESQUEMAS DE LECTURA ANIDACIÓN DE JUGADORES PARA MOSTRAR ESTADÍSTICAS
-class EstadisticaRead(SQLModel):
-    id: int
-    total_tiempo_jugado_min: Optional[int] = None
-    goles: Optional[int] = None
-    asistencias: Optional[int] = None
-    tarjetas_amarillas: Optional[int] = None
-    tarjetas_rojas: Optional[int] = None
-    faltas_cometidas: Optional[int] = None
-    suspensiones: Optional[bool] = None
-
-    class Config:
-        orm_mode = True
-class EstadisticaReadWithPlayer(EstadisticaRead):
-    jugador: Optional[JugadorRead] = None
-class EstadisticaCreate(SQLModel):
-    jugador_id: int
-    total_tiempo_jugado_min: Optional[int] = None
-    goles: Optional[int] = None
-    asistencias: Optional[int] = None
-    tarjetas_amarillas: Optional[int] = None
-    tarjetas_rojas: Optional[int] = None
-    faltas_cometidas: Optional[int] = None
-    suspensiones: Optional[bool] = None
-class EstadisticaCreateWithPlayer(EstadisticaCreate):
-    pass
-class PartidoRead(SQLModel):
-    id: int
-    fecha_partido: datetime
-    resultado: Optional[str] = None
-    goles_sigmotoa: Optional[int] = None
-
-    class Config:
-        orm_mode = True
-class PartidoCreate(SQLModel):
-    fecha_partido: datetime
-    resultado: Optional[str] = None
-    goles_sigmotoa: Optional[int] = None
-class PartidoReadWithPlayers(PartidoRead):
-    jugadores: List[JugadorRead] = []
-class PartidoCreateWithPlayers(PartidoCreate):
-    jugadores: List[int] = []
-class JugadorUpdate(SQLModel):
-    nombre: Optional[str] = None
-    apellido: Optional[str] = None
-    posicion: Optional[str] = None
-    numero_camiseta: Optional[int] = None
-    edad: Optional[int] = None
-    nacionalidad: Optional[str] = None
-
-
-
 #INICIALIZACIÓN DE LA APLICACIÓN FASTAPI
 app = FastAPI(title="SIGMOTOA FÚTBOL CLUB", version="0.1.0", description="SISTEMA WEB PARA LA GESTIÓN DE DATOS DEL CLUB DE FÚTBOL SIGMOTOA FC")
 #MONTAR LA CARPETA DE ARCHIVOS ESTÁTICOS
@@ -84,20 +40,17 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 #CONFIGURACIÓN DE LOS TEMPLATES JINJA2
 templates = Jinja2Templates(directory="templates")
 #CONFIGURACIÓN DE SUPABASE
-SUPABASE_URL: str = "https://your-supabase-url.supabase.co"
-SUPABASE_ANON_KEY = "your-anon-key"
-SUPABASE_BUCKET_NAME = "your-bucket-name"
+SUPABASE_URL: str = "https://okuotijfayaoecerimfi.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdW90aWpmYXlhb2VjZXJpbWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTg1OTMsImV4cCI6MjA4MDM3NDU5M30.8SstgKcCZs3CbcZSd0KEH4FQ7VBEnLR3t5RJeBzvsxk"
+SUPABASE_BUCKET_NAME = "IMG"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY) #CREACIÓN DEL CLIENTE DE SUPABASE
 #EJECUCIÓN DE LA CREACIÓN DE LA BASE DE DATOS Y TABLAS AL INICIAR EL SISTEMA WEB 
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
 #RUTAS BÁSICAS
-@app.get("/")
-async def root():
-    return {"message": "sigmotoa FC data"}
+@app.get("/", tags=["FRONTEND"])
+def homepage(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request, "title": "SIGMOTOA FC - SISTEMA WEB DE GESTIÓN DE DATOS"})
 
 
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Bienvenido a sigmotoa FC {name}"}

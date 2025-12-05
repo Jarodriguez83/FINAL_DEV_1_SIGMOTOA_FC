@@ -1,44 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
     <title>{{ title }}</title>
-    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f3f5f9;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #23457b;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+        .jugadores-table {
+            margin: 0 auto;
+            width: 90%;
+            max-width: 1200px;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(25,50,80,0.06);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .jugadores-table th, .jugadores-table td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #e0e6eb;
+            text-align: center;
+        }
+        .jugadores-table thead {
+            background: #23457b;
+            color: #fff;
+        }
+        .jugadores-table tbody tr:hover {
+            background: #f1f5fa;
+            transition: background 0.2s;
+        }
+        .foto-jugador {
+            border-radius: 6px;
+            max-height: 62px;
+            max-width: 72px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        @media (max-width: 900px) {
+            .jugadores-table {font-size: 12px;}
+        }
+        @media (max-width: 600px) {
+            .jugadores-table, .jugadores-table th, .jugadores-table td {font-size: 9px;}
+            h1 {font-size: 1.3rem;}
+        }
+    </style>
 </head>
 <body>
     <h1>{{ title }}</h1>
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Número de Camiseta</th>
-            <th>Fecha Nacimiento</th>
-            <th>Nacionalidad</th>
-            <th>Fotografía</th>
-            <th>Altura (cm)</th>
-            <th>Peso (kg)</th>
-            <th>Pie Dominante</th>
-            <th>Posición</th>
-            <th>Año Ingreso Club</th>
-            <th>Valor Mercado COL</th>
-            <th>Estado</th>
-        </tr>
+    <table class="jugadores-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Número</th>
+                <th>Fecha Nacimiento</th>
+                <th>Nacionalidad</th>
+                <th>Fotografía</th>
+                <th>Altura (cm)</th>
+                <th>Peso (kg)</th>
+                <th>Pie Dominante</th>
+                <th>Posición</th>
+                <th>Año Ingreso</th>
+                <th>Valor Mercado</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for jugador in jugadores %}
-        <tr>
-            <td>{{ jugador.id }}</td>
-            <td>{{ jugador.nombre }}</td>
-            <td>{{ jugador.numero_camiseta }}</td>
-            <td>{{ jugador.fecha_nacimiento.strftime('%Y-%m-%d') }}</td>
-            <td>{{ jugador.nacionalidad }}</td>
-            <td>{% if jugador.fotografia_url %}<img src="{{ jugador.fotografia_url }}" width="60">{% endif %}</td>
-            <td>{{ jugador.altura_cm or "" }}</td>
-            <td>{{ jugador.peso_kg or "" }}</td>
-            <td>{{ jugador.pie_dominante or "" }}</td>
-            <td>{{ jugador.posicion or "" }}</td>
-            <td>{{ jugador.ano_ingreso_club or "" }}</td>
-            <td>{{ jugador.valor_mercado_col or "" }}</td>
-            <td>{{ jugador.estado_jugador or "" }}</td>
-        </tr>
+            <tr>
+                <td>{{ jugador.id }}</td>
+                <td>{{ jugador.nombre }}</td>
+                <td>{{ jugador.numero_camiseta }}</td>
+                <td>{{ jugador.fecha_nacimiento.strftime('%Y-%m-%d') }}</td>
+                <td>{{ jugador.nacionalidad }}</td>
+                <td>
+                  {% if jugador.fotografia_url %}
+                    <img class="foto-jugador" src="{{ jugador.fotografia_url }}" alt="Foto de {{ jugador.nombre }}">
+                  {% else %}
+                    <span style="color: #888;">Sin foto</span>
+                  {% endif %}
+                </td>
+                <td>{{ jugador.altura_cm if jugador.altura_cm else "&nbsp;" }}</td>
+                <td>{{ jugador.peso_kg if jugador.peso_kg else "&nbsp;" }}</td>
+                <td>{{ jugador.pie_dominante if jugador.pie_dominante else "&nbsp;" }}</td>
+                <td>{{ jugador.posicion if jugador.posicion else "&nbsp;" }}</td>
+                <td>{{ jugador.ano_ingreso_club if jugador.ano_ingreso_club else "&nbsp;" }}</td>
+                <td>
+                  {% if jugador.valor_mercado_col %}
+                    ${{ "{:,.2f}".format(jugador.valor_mercado_col) }}
+                  {% else %}
+                    &nbsp;
+                  {% endif %}
+                </td>
+                <td>{{ jugador.estado_jugador if jugador.estado_jugador else "&nbsp;" }}</td>
+            </tr>
         {% endfor %}
+        </tbody>
     </table>
 </body>
 </html>

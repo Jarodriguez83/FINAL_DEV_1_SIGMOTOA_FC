@@ -70,4 +70,14 @@ def listar_jugadores(request: Request, session: Session = Depends(get_session)):
 
 
 
-
+@app.get("/jugadores", response_class=HTMLResponse, tags=["FRONTEND"])
+def listar_jugadores(request: Request, session: Session = Depends(get_session)):
+    jugadores = session.exec(select(Jugador)).all()
+    return templates.TemplateResponse(
+        "jugadores.html",
+        {
+            "request": request,
+            "jugadores": jugadores,
+            "title": "Listado de Jugadores"
+        }
+    )

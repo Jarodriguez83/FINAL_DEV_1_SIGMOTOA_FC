@@ -1,11 +1,8 @@
-
 from typing import Optional, List
 from datetime import date, datetime
 from sqlmodel import SQLModel, Field, Relationship
 from enum import Enum
 
-
-# --- ENUMS ---
 class EstadoJugadorEnum(str, Enum):
     ACTIVO = "ACTIVO"
     INACTIVO = "INACTIVO"
@@ -54,11 +51,9 @@ class Jugador(SQLModel, table=True):
 
     sancion: Optional[str] = Field(default=None, description="Descripción si hay sanción activa")
 
-    # Relación uno a muchos con estadísticas
     estadisticas: List["EstadisticaJugador"] = Relationship(back_populates="jugador")
 
 
-# --- 2. MODELO PARTIDO ---
 class Partido(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     fecha_partido: date = Field(index=True)
@@ -76,8 +71,7 @@ class Partido(SQLModel, table=True):
     @property
     def resultado_simple(self) -> str:
         """
-        Determina si el partido fue GANADO, EMPATADO o PERDIDO para Sigamotoa FC
-        (siempre es local).
+        Determina si el partido fue GANADO, EMPATADO o PERDIDO
         """
         if self.goles_sigmotoa is None or self.goles_rival is None:
             return "N/A"
@@ -94,11 +88,8 @@ class Partido(SQLModel, table=True):
 class EstadisticaJugador(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    # Claves foráneas (Relación Muchos a Muchos)
     jugador_id: int = Field(foreign_key="jugador.id", index=True)
     partido_id: int = Field(foreign_key="partido.id", index=True)
-
-    # Métricas del partido
     goles: int = Field(default=0, ge=0)
     asistencias: int = Field(default=0, ge=0)
     tarjeta_amarilla: int = Field(default=0, ge=0, le=2)
@@ -107,7 +98,6 @@ class EstadisticaJugador(SQLModel, table=True):
     lesionado: bool = Field(default=False)
     observaciones: Optional[str] = None
 
-    # Relaciones de vuelta
     jugador: Optional[Jugador] = Relationship(back_populates="estadisticas")
     partido: Optional[Partido] = Relationship(back_populates="estadisticas")
 

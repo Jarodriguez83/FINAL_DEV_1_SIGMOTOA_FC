@@ -1,22 +1,13 @@
-# main.py
-
-# LIBERÍAS DE FASTAPI
 from fastapi import FastAPI, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.requests import Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-
-# LIBRERÍAS DE BASE DE DATOS Y MANEJO
-from datetime import datetime, date  # Importaciones cruciales
+from datetime import datetime
 from sqlmodel import Session, select
-from typing import Optional  # <<< SOLUCIÓN AL NameError: 'Optional' is not defined
-
-# IMPORTACIÓN DE MODELOS Y MÓDULOS PROPIOS
+from typing import Optional
 from models import Jugador, Partido, PosicionEnum, PieDominanteEnum, EstadoJugadorEnum
 from database import engine, get_session, create_db_and_tables
-
-# INICIALIZACIÓN DE LA APLICACIÓN FASTAPI
 app = FastAPI(title="SIGMOTOA FÚTBOL CLUB", version="0.1.0",
               description="SISTEMA WEB PARA LA GESTIÓN DE DATOS DEL CLUB DE FÚTBOL SIGMOTOA FC")
 
@@ -24,19 +15,12 @@ app = FastAPI(title="SIGMOTOA FÚTBOL CLUB", version="0.1.0",
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# --- AJUSTE CRUCIAL DE TEMPLATE: Hacer datetime.now() disponible globalmente en Jinja2 ---
-# Esto asegura que {{ now().year }} funcione en el footer del layout.html
 templates.env.globals['now'] = datetime.now
 
-
-# --- EVENTO DE INICIO ---
 @app.on_event("startup")
 def on_startup():
     """Ejecuta la creación de tablas al iniciar el servidor."""
     create_db_and_tables()
-
-
-# --- ENDPOINTS PRINCIPALES ---
 
 @app.get("/", response_class=HTMLResponse)
 def read_index(request: Request):
@@ -45,7 +29,6 @@ def read_index(request: Request):
 
 
 # --- ENDPOINTS JUGADORES ---
-
 @app.get("/jugadores", response_class=HTMLResponse)
 def read_jugadores(request: Request, session: Session = Depends(get_session)):
     """Muestra la lista de jugadores y el formulario."""

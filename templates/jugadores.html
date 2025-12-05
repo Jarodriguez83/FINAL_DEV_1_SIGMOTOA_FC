@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Número de Camiseta</th>
+            <th>Fecha Nacimiento</th>
+            <th>Nacionalidad</th>
+            <th>Fotografía</th>
+            <th>Altura (cm)</th>
+            <th>Peso (kg)</th>
+            <th>Pie Dominante</th>
+            <th>Posición</th>
+            <th>Año Ingreso Club</th>
+            <th>Valor Mercado COL</th>
+            <th>Estado</th>
+        </tr>
+        {% for jugador in jugadores %}
+        <tr>
+            <td>{{ jugador.id }}</td>
+            <td>{{ jugador.nombre }}</td>
+            <td>{{ jugador.numero_camiseta }}</td>
+            <td>{{ jugador.fecha_nacimiento.strftime('%Y-%m-%d') }}</td>
+            <td>{{ jugador.nacionalidad }}</td>
+            <td>{% if jugador.fotografia_url %}<img src="{{ jugador.fotografia_url }}" width="60">{% endif %}</td>
+            <td>{{ jugador.altura_cm or "" }}</td>
+            <td>{{ jugador.peso_kg or "" }}</td>
+            <td>{{ jugador.pie_dominante or "" }}</td>
+            <td>{{ jugador.posicion or "" }}</td>
+            <td>{{ jugador.ano_ingreso_club or "" }}</td>
+            <td>{{ jugador.valor_mercado_col or "" }}</td>
+            <td>{{ jugador.estado_jugador or "" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
